@@ -3,27 +3,6 @@
   
     
     <entry>
-      <title>XDPhotoBrowser</title>
-      <link href="/2018/08/16/new-post/"/>
-      <url>/2018/08/16/new-post/</url>
-      <content type="html"><![CDATA[<figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">可定制的图片浏览器，可以自己控制图片的下载方式，支持动图（SDWebImage方式），两种出场方式，<span class="built_in">scale</span>方式和普通<span class="built_in">present</span>方式</span><br></pre></td></tr></table></figure><h5 id="控件基本结构："><a href="#控件基本结构：" class="headerlink" title="控件基本结构："></a>控件基本结构：</h5><figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">XDPhotoBrowserImageContainer</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">XDPhotoBrowserCollectionCell</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">UICollectionView</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">XDPhotoBrowser</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br></pre></td></tr></table></figure><h5 id="自定义下载方式："><a href="#自定义下载方式：" class="headerlink" title="自定义下载方式："></a>自定义下载方式：</h5><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> 图片浏览器将要加载到某一需要下载的图片的时候调用，存在高清图，或图片正在下载中，则不会再走该回调</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> @param browser 当前的图片浏览器</span></span><br><span class="line"><span class="comment"> @param index 当前图片的索引</span></span><br><span class="line"><span class="comment"> @param completionHandler 下载完成回调</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="selector-tag">-</span> (void)<span class="selector-tag">photoBrowser</span><span class="selector-pseudo">:(XDPhotoBrowser</span> *)<span class="selector-tag">browser</span></span><br><span class="line">       <span class="selector-tag">willLoadImage</span><span class="selector-pseudo">:(NSInteger)index</span></span><br><span class="line">  <span class="selector-tag">loadImageCompleted</span><span class="selector-pseudo">:(void</span> (^)(UIImage *image, NSData *data))<span class="selector-tag">completionHandle</span>;</span><br></pre></td></tr></table></figure><h5 id="XDPhotoBrowserManager："><a href="#XDPhotoBrowserManager：" class="headerlink" title="XDPhotoBrowserManager："></a>XDPhotoBrowserManager：</h5><p>重写该类可以实现高度定制</p>]]></content>
-      
-      <categories>
-          
-          <category> XDPhotoBrowser分类 </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> XDPhotoBrowser标签 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    <entry>
       <title>Hello World</title>
       <link href="/2018/08/16/hello-world/"/>
       <url>/2018/08/16/hello-world/</url>
@@ -39,27 +18,6 @@
         <tags>
             
             <tag> World标签 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    <entry>
-      <title>first iOS</title>
-      <link href="/2018/08/16/first-iOS/"/>
-      <url>/2018/08/16/first-iOS/</url>
-      <content type="html"><![CDATA[<figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">可定制的图片浏览器，可以自己控制图片的下载方式，支持动图（SDWebImage方式），两种出场方式，<span class="built_in">scale</span>方式和普通<span class="built_in">present</span>方式</span><br></pre></td></tr></table></figure><h5 id="控件基本结构："><a href="#控件基本结构：" class="headerlink" title="控件基本结构："></a>控件基本结构：</h5><figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">XDPhotoBrowserImageContainer</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">XDPhotoBrowserCollectionCell</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">UICollectionView</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br><span class="line"><span class="comment">|</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">XDPhotoBrowser</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">|</span></span><br></pre></td></tr></table></figure>]]></content>
-      
-      <categories>
-          
-          <category> ios分类 </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> iOS标签 </tag>
             
         </tags>
       
