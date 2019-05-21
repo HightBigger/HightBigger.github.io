@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://mrxiaoda.com/"/>
-  <updated>2018-10-24T14:24:05.992Z</updated>
+  <updated>2019-05-21T06:14:05.472Z</updated>
   <id>http://mrxiaoda.com/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>AFNetworking源码解析&lt;一&gt;</title>
+    <link href="http://mrxiaoda.com/2018/10/21/%5BiOS%5D%20AFNetworking%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E4%B8%80/"/>
+    <id>http://mrxiaoda.com/2018/10/21/[iOS] AFNetworking源码解析-一/</id>
+    <published>2018-10-21T06:12:18.000Z</published>
+    <updated>2019-05-21T06:14:05.472Z</updated>
+    
+    <content type="html"><![CDATA[<p>前一篇文章中介绍了WKWebView的一下常用属性以及常用API，那么在这篇文章中将主要讲述WKWebView在使用过程中遇到的一些坑。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;前一篇文章中介绍了WKWebView的一下常用属性以及常用API，那么在这篇文章中将主要讲述WKWebView在使用过程中遇到的一些坑。&lt;/p&gt;
+
+      
+    
+    </summary>
+    
+      <category term="iOS" scheme="http://mrxiaoda.com/categories/iOS/"/>
+    
+    
+      <category term="AFNetworking" scheme="http://mrxiaoda.com/tags/AFNetworking/"/>
+    
+  </entry>
   
   <entry>
     <title>WKWebView的那些坑</title>
