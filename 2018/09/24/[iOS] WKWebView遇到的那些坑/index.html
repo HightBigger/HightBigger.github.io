@@ -1,31 +1,272 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>WKWebView的那些坑 | 小大</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"><link rel="alternate" type="application/atom+xml" href="/atom.xml"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">WKWebView的那些坑</h1><a id="logo" href="/.">小大</a><p class="description">群居守口，独处守心</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a><a href="/atom.xml"><i class="fa fa-rss"> 订阅</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">WKWebView的那些坑</h1><div class="post-meta">Sep 24, 2018<span> | </span><span class="category"><a href="/categories/iOS/">iOS</a></span></div><div class="post-content"><p>前一篇文章中介绍了WKWebView的一下常用属性以及常用API，那么在这篇文章中将主要讲述WKWebView在使用过程中遇到的一些坑。</p>
-<h2 id="1-白屏问题"><a href="#1-白屏问题" class="headerlink" title="1.白屏问题"></a>1.白屏问题</h2><p>在UIWebView上个当内存占用太大时，app会直接crash，而在WKWebView上内存占用太大时，WebContent Process 会 crash，从而导致页面白屏。</p>
-<p><strong>解决办法：</strong></p>
-<p>在iOS9之后WKNavigtionDelegate 新增了一个回调函数：</p>
-<figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="params">(void)</span>webViewWebContentProcessDidTerminate:<span class="params">(WKWebView *)</span>webView;</span><br></pre></td></tr></table></figure>
-<p>在WebContent Process即将crash的时候，系统会调用上面的函数，这个时候webView.URL还不为空，所以我们直接在上面的这个回调里面调用[webView reload]，问题得到解决。</p>
-<h2 id="2-双击页面导致客户端崩溃问题"><a href="#2-双击页面导致客户端崩溃问题" class="headerlink" title="2.双击页面导致客户端崩溃问题"></a>2.双击页面导致客户端崩溃问题</h2><p><strong>报错信息：</strong></p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[WKContentView isSecureTextEntry]: unrecognized selector sent <span class="keyword">to</span><span class="built_in"> instance </span>0x101bd5000</span><br></pre></td></tr></table></figure>
-<p>从这个报错信息表明<strong>WKContentView</strong>没有找到<strong>isSecureTextEntry</strong>方法，在查找各种资料无果后决定用runtime的方式给<strong>WKContentView</strong>加上该方法，简单粗暴。</p>
-<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">+ (<span class="keyword">void</span>)progressWKContentViewCrash </span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (([[[<span class="built_in">UIDevice</span> currentDevice] systemVersion] doubleValue] &gt;= <span class="number">8.0</span>)) </span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *className = <span class="string">@"WKContentView"</span>.UTF8String;</span><br><span class="line"></span><br><span class="line">        Class <span class="built_in">WKContentViewClass</span> = objc_getClass(className);</span><br><span class="line"></span><br><span class="line">        SEL isSecureTextEntry = <span class="built_in">NSSelectorFromString</span>(<span class="string">@"isSecureTextEntry"</span>);</span><br><span class="line"></span><br><span class="line">        SEL secureTextEntry = <span class="built_in">NSSelectorFromString</span>(<span class="string">@"secureTextEntry"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">BOOL</span> addIsSecureTextEntry = class_addMethod(<span class="built_in">WKContentViewClass</span>, isSecureTextEntry, (IMP)isSecureTextEntryIMP, <span class="string">"B@:"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">BOOL</span> addSecureTextEntry = class_addMethod(<span class="built_in">WKContentViewClass</span>, secureTextEntry, (IMP)secureTextEntryIMP, <span class="string">"B@:"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!addIsSecureTextEntry || !addSecureTextEntry) </span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">NSLog</span>(<span class="string">@"WKContentView-Crash-&gt;修复失败"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> 实现WKContentView对象isSecureTextEntry方法</span></span><br><span class="line"><span class="comment"> @return NO</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="built_in">BOOL</span> isSecureTextEntryIMP(<span class="keyword">id</span> sender, SEL cmd) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> 实现WKContentView对象secureTextEntry方法</span></span><br><span class="line"><span class="comment"> @return NO</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="built_in">BOOL</span> secureTextEntryIMP(<span class="keyword">id</span> sender, SEL cmd) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NO</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>以上progressWKContentViewCrash方法只需要调用一次即可，无需多次调用。</p>
-<h2 id="3-页面无法释放问题"><a href="#3-页面无法释放问题" class="headerlink" title="3.页面无法释放问题"></a>3.页面无法释放问题</h2><p>在实际使用过程当中，发现使用了WKWebView的界面始终无法释放，在排除了其他因素之后，把目光转向了WKWebView。经过排查之后发现，在初始化webview的时候是这样的：</p>
-<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">webview</span> = [[WKWebView alloc]initWithFrame:frame configuration:configuration];</span><br></pre></td></tr></table></figure>
-<p>然而webview为了与js进行交互，configuration的userContentController属性添加了一个WKScriptMessageHandler：</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[configuration.userContentController <span class="string">addScriptMessageHandler:</span>self <span class="string">name:</span>@<span class="string">"methodName"</span>];</span><br></pre></td></tr></table></figure>
-<p>因为webview的持有者是controller，然后controller又被configuration.userContentController强引用，所以导致页面无法释放。所以这里建议将handler设置成一个管理类，并且在页面的delloc中将其移除。</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[configuration.userContentController <span class="string">addScriptMessageHandler:</span>handlerManager <span class="string">name:</span>@<span class="string">"methodName"</span>];</span><br><span class="line"></span><br><span class="line">- (<span class="keyword">void</span>)dealloc</span><br><span class="line">&#123;</span><br><span class="line">    [webview.configuration.userContentController <span class="string">removeScriptMessageHandlerForName:</span>@<span class="string">"AppNestCall"</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="4-Alert相关问题"><a href="#4-Alert相关问题" class="headerlink" title="4.Alert相关问题"></a>4.Alert相关问题</h2><h4 id="4-1、Js执行alert方法不弹出alert问题"><a href="#4-1、Js执行alert方法不弹出alert问题" class="headerlink" title="4.1、Js执行alert方法不弹出alert问题"></a>4.1、Js执行alert方法不弹出alert问题</h4><p>首先确定webview的回调中已经实现了alert，然后在判断alert弹出时是否有其他界面正在弹出或消失，若有，则在动画结束之后再弹出alert。</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-(<span class="keyword">void</span>)<span class="string">webView:</span>(WKWebView *)webView <span class="string">runJavaScriptAlertPanelWithMessage:</span>(NSString *)message <span class="string">initiatedByFrame:</span>(WKFrameInfo *)frame <span class="string">completionHandler:</span>(<span class="keyword">void</span> (^)(<span class="keyword">void</span>))completionHandler；</span><br></pre></td></tr></table></figure>
-<h4 id="4-2、Alert崩溃问题"><a href="#4-2、Alert崩溃问题" class="headerlink" title="4.2、Alert崩溃问题"></a>4.2、Alert崩溃问题</h4><p>确保最后的completionHandler被执行。</p>
-<h2 id="5、其它问题"><a href="#5、其它问题" class="headerlink" title="5、其它问题"></a>5、其它问题</h2><h4 id="5-1、视频自动播放"><a href="#5-1、视频自动播放" class="headerlink" title="5.1、视频自动播放"></a>5.1、视频自动播放</h4><p>WKWebView 需要通过WKWebViewConfiguration.mediaPlaybackRequiresUserAction设置是否允许自动播放，但一定要在 WKWebView 初始化之前设置，在 WKWebView 初始化之后设置无效。</p>
-<h4 id="5-2、goBack-API问题"><a href="#5-2、goBack-API问题" class="headerlink" title="5.2、goBack API问题"></a>5.2、goBack API问题</h4><p>WKWebView 上调用 -[WKWebView goBack], 回退到上一个页面后不会触发window.onload()函数、不会执行JS。</p>
-<h4 id="5-3、页面滚动速率"><a href="#5-3、页面滚动速率" class="headerlink" title="5.3、页面滚动速率"></a>5.3、页面滚动速率</h4><p>WKWebView 需要通过scrollView delegate调整滚动速率：</p>
-<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (void)<span class="keyword">scrollViewWillBeginDragging:(UIScrollView </span>*)<span class="keyword">scrollView </span></span><br><span class="line">&#123;</span><br><span class="line">     <span class="keyword">scrollView.decelerationRate </span>= UIScrollViewDecelerationRateNormal<span class="comment">;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</div><div class="tags"><a href="/tags/WKWebView/">WKWebView</a></div><div class="post-nav"><a class="pre" href="/2018/10/21/[iOS] AFNetworking源码解析/">AFNetworking源码解析</a><a class="next" href="/2018/09/19/[iOS] WKWebView的常用属性以及常用API/">WKWebView的常用属性以及常用API</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/iOS/">iOS</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/WKWebView/" style="font-size: 15px;">WKWebView</a> <a href="/tags/AFNetworking/" style="font-size: 15px;">AFNetworking</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://xiaochudaxia.com/" title="飞飞" target="_blank">飞飞</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2019 <a href="/." rel="nofollow">小大.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/search.js?v=0.0.0"></script><script>var search_path = 'search.xml';
-if (search_path.length == 0) {
-   search_path = 'search.xml';
-}
-var path = '/' + search_path;
-searchFunc(path, 'local-search-input', 'local-search-result');
-</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>WKWebView的那些坑 | 小大</title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1671.5">
+  <style type="text/css">
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #0000e9; -webkit-text-stroke: #0000e9}
+    p.p3 {margin: 0.0px 0.0px 12.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 12.0px 'PingFang SC'; color: #000000; -webkit-text-stroke: #000000}
+    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 12.0px 'PingFang SC'; color: #000000; -webkit-text-stroke: #000000; min-height: 17.0px}
+    p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 21.0px; font: 15.0px 'Songti SC'; color: #0000e9; -webkit-text-stroke: #0000e9}
+    li.li9 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #0000e9}
+    li.li11 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000}
+    span.s1 {font-kerning: none}
+    span.s2 {text-decoration: underline ; font-kerning: none}
+    span.s3 {font: 12.0px 'Songti SC'; text-decoration: underline ; font-kerning: none; color: #0000e9; -webkit-text-stroke: 0px #0000e9}
+    span.s4 {text-decoration: underline ; font-kerning: none; -webkit-text-stroke: 0px #0000e9}
+    span.s5 {font: 12.0px 'Songti SC'; font-kerning: none; color: #000000; -webkit-text-stroke: 0px #000000}
+    span.s6 {font: 15.0px 'Songti SC'; text-decoration: underline ; font-kerning: none; color: #0000e9; -webkit-text-stroke: 0px #0000e9}
+    td.td1 {width: 4.8px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td2 {width: 424.1px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td3 {width: 504.1px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td4 {width: 14.4px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td5 {width: 741.3px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td6 {width: 449.6px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td7 {width: 516.8px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td8 {width: 7.2px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td9 {width: 590.8px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td10 {width: 1095.3px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    td.td11 {width: 396.6px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 1.0px 1.0px 1.0px 1.0px}
+    ul.ul1 {list-style-type: disc}
+  </style>
+</head>
+<body>
+<h1 style="margin: 0.0px 0.0px 16.1px 0.0px; line-height: 33.0px; font: 24.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>WKWebView的那些坑</b></span></h1>
+<p class="p2"><span class="s2"><a href="file:///">小大</a></span></p>
+<p class="p3"><span class="s1">群居守口，独处守心</span></p>
+<p class="p2"><span class="s2"><a href="file:///">首页</a><a href="file:///archives/"> 归档</a><a href="file:///about/"> 关于</a><a href="file:///atom.xml"> 订阅</a></span></p>
+<h1 style="margin: 0.0px 0.0px 16.1px 0.0px; line-height: 33.0px; font: 24.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>WKWebView的那些坑</b></span></h1>
+<p class="p4"><span class="s1">Sep 24, 2018 | <a href="file:///categories/iOS/"><span class="s3">iOS</span></a></span></p>
+<p class="p3"><span class="s1">前一篇文章中介绍了WKWebView的一下常用属性以及常用API，那么在这篇文章中将主要讲述WKWebView在使用过程中遇到的一些坑。</span></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 25.0px; font: 18.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>1.白屏问题</b></span></h2>
+<p class="p3"><span class="s1">在UIWebView上个当内存占用太大时，app会直接crash，而在WKWebView上内存占用太大时，WebContent Process 会 crash，从而导致页面白屏。</span></p>
+<p class="p3"><span class="s1"><b>解决办法：</b></span></p>
+<p class="p3"><span class="s1">在iOS9之后WKNavigtionDelegate 新增了一个回调函数：</span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p6"><span class="s1">1</span></p>
+      </td>
+      <td valign="middle" class="td2">
+        <p class="p6"><span class="s1">- (void)webViewWebContentProcessDidTerminate:(WKWebView *)webView;</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p3"><span class="s1">在WebContent Process即将crash的时候，系统会调用上面的函数，这个时候webView.URL还不为空，所以我们直接在上面的这个回调里面调用[webView reload]，问题得到解决。</span></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 25.0px; font: 18.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>2.双击页面导致客户端崩溃问题</b></span></h2>
+<p class="p3"><span class="s1"><b>报错信息：</b></span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p6"><span class="s1">1</span></p>
+      </td>
+      <td valign="middle" class="td3">
+        <p class="p6"><span class="s1">[WKContentView isSecureTextEntry]: unrecognized selector sent to instance 0x101bd5000</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p3"><span class="s1">从这个报错信息表明<b>WKContentView</b>没有找到<b>isSecureTextEntry</b>方法，在查找各种资料无果后决定用runtime的方式给<b>WKContentView</b>加上该方法，简单粗暴。</span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td4">
+        <p class="p6"><span class="s1">1</span></p>
+        <p class="p6"><span class="s1">2</span></p>
+        <p class="p6"><span class="s1">3</span></p>
+        <p class="p6"><span class="s1">4</span></p>
+        <p class="p6"><span class="s1">5</span></p>
+        <p class="p6"><span class="s1">6</span></p>
+        <p class="p6"><span class="s1">7</span></p>
+        <p class="p6"><span class="s1">8</span></p>
+        <p class="p6"><span class="s1">9</span></p>
+        <p class="p6"><span class="s1">10</span></p>
+        <p class="p6"><span class="s1">11</span></p>
+        <p class="p6"><span class="s1">12</span></p>
+        <p class="p6"><span class="s1">13</span></p>
+        <p class="p6"><span class="s1">14</span></p>
+        <p class="p6"><span class="s1">15</span></p>
+        <p class="p6"><span class="s1">16</span></p>
+        <p class="p6"><span class="s1">17</span></p>
+        <p class="p6"><span class="s1">18</span></p>
+        <p class="p6"><span class="s1">19</span></p>
+        <p class="p6"><span class="s1">20</span></p>
+        <p class="p6"><span class="s1">21</span></p>
+        <p class="p6"><span class="s1">22</span></p>
+        <p class="p6"><span class="s1">23</span></p>
+        <p class="p6"><span class="s1">24</span></p>
+        <p class="p6"><span class="s1">25</span></p>
+        <p class="p6"><span class="s1">26</span></p>
+        <p class="p6"><span class="s1">27</span></p>
+        <p class="p6"><span class="s1">28</span></p>
+        <p class="p6"><span class="s1">29</span></p>
+        <p class="p6"><span class="s1">30</span></p>
+        <p class="p6"><span class="s1">31</span></p>
+        <p class="p6"><span class="s1">32</span></p>
+        <p class="p6"><span class="s1">33</span></p>
+        <p class="p6"><span class="s1">34</span></p>
+        <p class="p6"><span class="s1">35</span></p>
+        <p class="p6"><span class="s1">36</span></p>
+        <p class="p6"><span class="s1">37</span></p>
+        <p class="p6"><span class="s1">38</span></p>
+      </td>
+      <td valign="middle" class="td5">
+        <p class="p6"><span class="s1">+ (void)progressWKContentViewCrash<span class="Apple-converted-space"> </span></span></p>
+        <p class="p6"><span class="s1">{</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">    </span>if (([[[UIDevice currentDevice] systemVersion] doubleValue] &gt;= 8.0))<span class="Apple-converted-space"> </span></span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">    </span>{</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>const char *className = @"WKContentView".UTF8String;</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>Class WKContentViewClass = objc_getClass(className);</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>SEL isSecureTextEntry = NSSelectorFromString(@"isSecureTextEntry");</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>SEL secureTextEntry = NSSelectorFromString(@"secureTextEntry");</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>BOOL addIsSecureTextEntry = class_addMethod(WKContentViewClass, isSecureTextEntry, (IMP)isSecureTextEntryIMP, "B@:");</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>BOOL addSecureTextEntry = class_addMethod(WKContentViewClass, secureTextEntry, (IMP)secureTextEntryIMP, "B@:");</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>if (!addIsSecureTextEntry || !addSecureTextEntry)<span class="Apple-converted-space"> </span></span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>{</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">            </span>NSLog(@"WKContentView-Crash-&gt;修复失败");</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+        <p class="p6"><span class="s1">}</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1">/**</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space"> </span>实现WKContentView对象isSecureTextEntry方法</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space"> </span>@return NO</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space"> </span>*/</span></p>
+        <p class="p6"><span class="s1">BOOL isSecureTextEntryIMP(id sender, SEL cmd) {</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">    </span>return NO;</span></p>
+        <p class="p6"><span class="s1">}</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1">/**</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space"> </span>实现WKContentView对象secureTextEntry方法</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space"> </span>@return NO</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space"> </span>*/</span></p>
+        <p class="p6"><span class="s1">BOOL secureTextEntryIMP(id sender, SEL cmd) {</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">    </span>return NO;</span></p>
+        <p class="p6"><span class="s1">}</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p3"><span class="s1">以上progressWKContentViewCrash方法只需要调用一次即可，无需多次调用。</span></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 25.0px; font: 18.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>3.页面无法释放问题</b></span></h2>
+<p class="p3"><span class="s1">在实际使用过程当中，发现使用了WKWebView的界面始终无法释放，在排除了其他因素之后，把目光转向了WKWebView。经过排查之后发现，在初始化webview的时候是这样的：</span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p6"><span class="s1">1</span></p>
+      </td>
+      <td valign="middle" class="td6">
+        <p class="p6"><span class="s1">webview = [[WKWebView alloc]initWithFrame:frame configuration:configuration];</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p3"><span class="s1">然而webview为了与js进行交互，configuration的userContentController属性添加了一个WKScriptMessageHandler：</span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p6"><span class="s1">1</span></p>
+      </td>
+      <td valign="middle" class="td7">
+        <p class="p6"><span class="s1">[configuration.userContentController addScriptMessageHandler:self name:@"methodName"];</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p3"><span class="s1">因为webview的持有者是controller，然后controller又被configuration.userContentController强引用，所以导致页面无法释放。所以这里建议将handler设置成一个管理类，并且在页面的delloc中将其移除。</span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td8">
+        <p class="p6"><span class="s1">1</span></p>
+        <p class="p6"><span class="s1">2</span></p>
+        <p class="p6"><span class="s1">3</span></p>
+        <p class="p6"><span class="s1">4</span></p>
+        <p class="p6"><span class="s1">5</span></p>
+        <p class="p6"><span class="s1">6</span></p>
+      </td>
+      <td valign="middle" class="td9">
+        <p class="p6"><span class="s1">[configuration.userContentController addScriptMessageHandler:handlerManager name:@"methodName"];</span></p>
+        <p class="p7"><span class="s1"></span><br></p>
+        <p class="p6"><span class="s1">- (void)dealloc</span></p>
+        <p class="p6"><span class="s1">{</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">    </span>[webview.configuration.userContentController removeScriptMessageHandlerForName:@"AppNestCall"];</span></p>
+        <p class="p6"><span class="s1">}</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 25.0px; font: 18.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>4.Alert相关问题</b></span></h2>
+<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>4.1、Js执行alert方法不弹出alert问题</b></span></h4>
+<p class="p3"><span class="s1">首先确定webview的回调中已经实现了alert，然后在判断alert弹出时是否有其他界面正在弹出或消失，若有，则在动画结束之后再弹出alert。</span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p6"><span class="s1">1</span></p>
+      </td>
+      <td valign="middle" class="td10">
+        <p class="p6"><span class="s1">-(void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler；</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>4.2、Alert崩溃问题</b></span></h4>
+<p class="p3"><span class="s1">确保最后的completionHandler被执行。</span></p>
+<h2 style="margin: 0.0px 0.0px 14.9px 0.0px; line-height: 25.0px; font: 18.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>5、其它问题</b></span></h2>
+<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>5.1、视频自动播放</b></span></h4>
+<p class="p3"><span class="s1">WKWebView 需要通过WKWebViewConfiguration.mediaPlaybackRequiresUserAction设置是否允许自动播放，但一定要在 WKWebView 初始化之前设置，在 WKWebView 初始化之后设置无效。</span></p>
+<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>5.2、goBack API问题</b></span></h4>
+<p class="p3"><span class="s1">WKWebView 上调用 -[WKWebView goBack], 回退到上一个页面后不会触发window.onload()函数、不会执行JS。</span></p>
+<h4 style="margin: 0.0px 0.0px 16.0px 0.0px; line-height: 17.0px; font: 12.0px 'Songti SC'; color: #000000; -webkit-text-stroke: #000000"><span class="s1"><b>5.3、页面滚动速率</b></span></h4>
+<p class="p3"><span class="s1">WKWebView 需要通过scrollView delegate调整滚动速率：</span></p>
+<table cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td8">
+        <p class="p6"><span class="s1">1</span></p>
+        <p class="p6"><span class="s1">2</span></p>
+        <p class="p6"><span class="s1">3</span></p>
+        <p class="p6"><span class="s1">4</span></p>
+      </td>
+      <td valign="middle" class="td11">
+        <p class="p6"><span class="s1">- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView<span class="Apple-converted-space"> </span></span></p>
+        <p class="p6"><span class="s1">{</span></p>
+        <p class="p6"><span class="s1"><span class="Apple-converted-space">     </span>scrollView.decelerationRate = UIScrollViewDecelerationRateNormal;</span></p>
+        <p class="p6"><span class="s1">}</span></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p2"><span class="s2"><a href="file:///tags/WKWebView/">WKWebView</a></span></p>
+<p class="p2"><span class="s2"><a href="file:///2018/10/21/%5BiOS%5D%20AFNetworking%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">AFNetworking源码解析</a><a href="file:///2018/09/19/%5BiOS%5D%20WKWebView%E7%9A%84%E5%B8%B8%E7%94%A8%E5%B1%9E%E6%80%A7%E4%BB%A5%E5%8F%8A%E5%B8%B8%E7%94%A8API/">WKWebView的常用属性以及常用API</a></span></p>
+<p class="p4"><span class="s1">分类</span></p>
+<ul class="ul1">
+  <li class="li9"><a href="file:///categories/iOS/"><span class="s4">iOS</span></a></li>
+</ul>
+<p class="p4"><span class="s1">标签</span></p>
+<p class="p10"><span class="s2"><a href="file:///tags/WKWebView/">WKWebView</a></span><span class="s5"> <a href="file:///tags/AFNetworking/"><span class="s6">AFNetworking</span></a></span></p>
+<p class="p4"><span class="s1">友情链接</span></p>
+<ul class="ul1">
+  <li class="li11"></li>
+</ul>
+<p class="p2"><span class="s2"><a href="http://xiaochudaxia.com/">飞飞</a></span></p>
+<p class="p4"><span class="s1">Copyright © 2018 <a href="file:///"><span class="s3">小大.</span></a><span class="Apple-converted-space"> </span></span></p>
+</body>
+</html>
