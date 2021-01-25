@@ -3,6 +3,27 @@
   
     
     <entry>
+      <title>dlopen与dlsym 动态调用函数</title>
+      <link href="/2019/06/22/%5BiOS%5D%20dlopen%E4%B8%8Edlsym%20%E5%8A%A8%E6%80%81%E8%B0%83%E7%94%A8%E5%87%BD%E6%95%B0/"/>
+      <url>/2019/06/22/%5BiOS%5D%20dlopen%E4%B8%8Edlsym%20%E5%8A%A8%E6%80%81%E8%B0%83%E7%94%A8%E5%87%BD%E6%95%B0/</url>
+      <content type="html"><![CDATA[<p>Linux/Unix 提供了使用 dlopen 和 dlsym 方法动态加载库和调用函数，这套方法在 macOS 和 iOS 上也支持。</p><p>dlopen 打开一个库，获取句柄。<br>dlsym 在打开的库中查找符号的值。<br>dlclose 关闭句柄。<br>dlerror 返回一个描述最后一次调用dlopen、dlsym，或 dlclose 的错误信息的字符串。</p><p>动态调用 printf 函数，编写测试代码如下：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">#import &lt;dlfcn.h&gt;</span><br><span class="line"> </span><br><span class="line">typedef int (*printf_func_pointer) (const char * __restrict, ...);</span><br><span class="line">void dynamic_call_function()&#123;</span><br><span class="line">    //动态库路径</span><br><span class="line">    char *dylib_path = &quot;/usr/lib/libSystem.dylib&quot;;</span><br><span class="line">    //打开动态库</span><br><span class="line">    void *handle = dlopen(dylib_path, RTLD_GLOBAL | RTLD_NOW);</span><br><span class="line">    if (handle == NULL) &#123;</span><br><span class="line">        //打开动态库出错</span><br><span class="line">        fprintf(stderr, &quot;%s\n&quot;, dlerror());</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        //获取 printf 地址</span><br><span class="line">        printf_func_pointer printf_func = dlsym(handle, &quot;printf&quot;);</span><br><span class="line">        //地址获取成功则调用</span><br><span class="line">        if (printf_func) &#123;</span><br><span class="line">            int num = 100;</span><br><span class="line">            printf_func(&quot;Hello exchen.net %d\n&quot;, num);</span><br><span class="line">            printf_func(&quot;printf function address 0x%lx\n&quot;, printf_func);</span><br><span class="line">        &#125;</span><br><span class="line">        dlclose(handle); //关闭句柄</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">int main(int argc, char * argv[]) &#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        dynamic_call_function();</span><br><span class="line">        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>在手机上运行的输出结果如下：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Hello exchen.net 100</span><br><span class="line">printf function address 0x189f0da78</span><br></pre></td></tr></table></figure>]]></content>
+      
+      <categories>
+          
+          <category> iOS </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> dlsym </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    <entry>
       <title>SDWebImage源码解析</title>
       <link href="/2019/05/17/%5BiOS%5D%20SDWebImage%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"/>
       <url>/2019/05/17/%5BiOS%5D%20SDWebImage%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/</url>
